@@ -11,9 +11,11 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import java.io.IOException;
-import java.util.Optional;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
 
 public class Klientfx extends Application {
 
@@ -26,16 +28,11 @@ public class Klientfx extends Application {
     }
 
     @Override
-    public void start(Stage primaryStage) throws IOException {
+    public void start(Stage primaryStage) {
         VBox mainVBox = new VBox();
 
-        Oglas oglas1 = new Oglas("Renault Clio 2022", "Renault Clio pogodan gradski automobil", 10000, "file:src/clio.jpg");
-        Oglas oglas2 = new Oglas("Renault Megane 2022", "Opis oglasa 2", 15000, "file:src/megan.jpg");
-        Oglas oglas3 = new Oglas("Renault Kwid 2022", "Opis oglasa 3", 20000, "file:src/kwid.jpg");
-        Oglas oglas4 = new Oglas("Renault Captur 2022", "Opis oglasa 4", 25000, "file:src/capture.jpg");
-
         oglasiVBox = new VBox(20);
-        oglasiVBox.getChildren().addAll(oglas1.getOglasNode(), oglas2.getOglasNode(), oglas3.getOglasNode(), oglas4.getOglasNode());
+        ucitajOglaseIzBaze(); // Učitavanje oglasa iz baze
         oglasiVBox.setAlignment(Pos.CENTER);
         oglasiVBox.setPadding(new Insets(20));
 
@@ -43,15 +40,13 @@ public class Klientfx extends Application {
         scrollPane.setFitToWidth(true);
         mainVBox.getChildren().add(scrollPane);
 
-
-
         liveChatButton = new Button("Live Chat support");
         liveChatButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
         liveChatButton.setOnAction(e -> {
             try {
                 new LiveChatC();
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
         });
 
@@ -68,14 +63,45 @@ public class Klientfx extends Application {
         primaryStage.show();
     }
 
+    private void ucitajOglaseIzBaze() {
+        try {
+            Connection connection = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/cs202-db",
+                    "root",
+                    "");
+
+            String query = "SELECT o.id, o.slika, o.cena, a.model, a.opis, a.boja " +
+                    "FROM Oglas o " +
+                    "JOIN Automobil a ON o.automobil_id = a.auto_id";
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(query);
+
+            while (resultSet.next()) {
+                int oglasId = resultSet.getInt("id");
+                String naslov = resultSet.getString("model");
+                String opis = resultSet.getString("opis");
+                double cena = resultSet.getDouble("cena");
+                String putanjaDoSlike = resultSet.getString("slika");
+
+                Oglas oglas = new Oglas(naslov, opis, cena, putanjaDoSlike);
+                oglasiVBox.getChildren().add(oglas.getOglasNode());
+            }
+
+            resultSet.close();
+            statement.close();
+            connection.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private String promptForUsername() {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Unesite korisničko ime");
         dialog.setHeaderText(null);
         dialog.setContentText("Unesite korisničko ime:");
 
-        Optional<String> result = dialog.showAndWait();
-        return result.orElse("Klijent");
+        return dialog.showAndWait().orElse("Klijent");
     }
 
     private void prikaziKaparisanjePopup(String naslovOglasa, String opisOglasa, double cenaOglasa, String bojaOglasa, String putanjaDoSlike) {

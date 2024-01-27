@@ -12,25 +12,33 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class AutoOglasnaTabla extends Application {
+
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/cs202-db";
+    private static final String DB_USER = "root";
+    private static final String DB_PASSWORD = "";
 
     public static void main(String[] args) {
         launch(args);
     }
 
-
     @Override
     public void start(Stage primaryStage) {
         BorderPane mainPane = new BorderPane();
 
-        Oglas oglas1 = new Oglas("Renault Clio 2022", "Opis oglasa 1", 10000, "file:src/clio.jpg");
-        Oglas oglas2 = new Oglas("Renault Megane 2022", "Opis oglasa 2", 15000, "file:src/megan.jpg");
-        Oglas oglas3 = new Oglas("Renault Kwid 2022", "Opis oglasa 3", 20000, "file:src/kwid.jpg");
-        Oglas oglas4 = new Oglas("Renault Captur 2022", "Opis oglasa 4", 25000, "file:src/capture.jpg");
+        List<Oglas> oglasi = ucitajOglaseIzBaze();
 
         VBox oglasiVBox = new VBox(20);
-        oglasiVBox.getChildren().addAll(oglas1.getOglasNode(), oglas2.getOglasNode(), oglas3.getOglasNode(), oglas4.getOglasNode());
+        oglasiVBox.getChildren().addAll(oglasi.stream().map(Oglas::getOglasNode).collect(Collectors.toList()));
         oglasiVBox.setAlignment(Pos.CENTER);
         oglasiVBox.setPadding(new Insets(20));
 
@@ -72,6 +80,35 @@ public class AutoOglasnaTabla extends Application {
         Scene registerScene = new Scene(registerPane, 400, 250);
         primaryStage.setScene(registerScene);
     }
+
+    private List<Oglas> ucitajOglaseIzBaze() {
+        List<Oglas> oglasi = new ArrayList<>();
+
+        try (Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            String sql = "SELECT o.id, o.slika, o.cena, a.model, a.opis, a.boja " +
+                    "FROM Oglas o " +
+                    "JOIN Automobil a ON o.automobil_id = a.auto_id";
+            try (PreparedStatement statement = connection.prepareStatement(sql)) {
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    while (resultSet.next()) {
+                        int oglasId = resultSet.getInt("id");
+                        String naslov = resultSet.getString("model");
+                        String opis = resultSet.getString("opis");
+                        double cena = resultSet.getDouble("cena");
+                        String putanjaDoSlike = resultSet.getString("slika");
+
+                        Oglas oglas = new Oglas(naslov, opis, cena, putanjaDoSlike);
+                        oglasi.add(oglas);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return oglasi;
+    }
+
     private static class Oglas {
         private final String naslov;
         private final String opis;
