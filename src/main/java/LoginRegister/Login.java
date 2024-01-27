@@ -1,4 +1,5 @@
 package LoginRegister;
+import FX.AutoOglasnaTabla;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -23,7 +24,7 @@ public class Login extends GridPane {
         cancleButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
         cancleButton.setOnAction(e -> {
             primaryStage.close();
-            new com.example.cs202pz.AutoOglasnaTabla().start(primaryStage);
+            new AutoOglasnaTabla().start(primaryStage);
         });
 
 

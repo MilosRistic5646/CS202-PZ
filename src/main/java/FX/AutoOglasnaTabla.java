@@ -1,4 +1,4 @@
-package com.example.cs202pz;
+package FX;
 
 import LoginRegister.Login;
 import LoginRegister.Register;
