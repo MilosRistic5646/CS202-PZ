@@ -4,7 +4,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
 import FX.AutoOglasnaTabla;
 import FX.Klientfx;
 import javafx.geometry.Insets;

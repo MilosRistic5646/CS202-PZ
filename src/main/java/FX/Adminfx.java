@@ -11,16 +11,12 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import java.io.*;
-import java.net.Socket;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Adminfx extends Application {
 
     private TableView<Kaparisanje> kaparisanjaTable;
     private ObservableList<Kaparisanje> kaparisanjaData;
 
-    private Map<Socket, String> korisniciMapa = new HashMap<>();
 
     public static void main(String[] args) {
         launch(args);
