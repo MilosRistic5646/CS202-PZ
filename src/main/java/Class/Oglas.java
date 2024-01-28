@@ -9,6 +9,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
 public class Oglas {
+    private int oglasId;
     private String naslov;
     private String opis;
     private double cena;

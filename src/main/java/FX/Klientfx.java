@@ -1,5 +1,6 @@
 package FX;
 
+
 import Livechat.LiveChatC;
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -11,7 +12,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -70,7 +70,7 @@ public class Klientfx extends Application {
                     "root",
                     "");
 
-            String query = "SELECT o.id, o.slika, o.cena, a.model, a.opis, a.boja " +
+            String query = "SELECT o.id, o.slika, o.cena, a.auto_id, a.model, a.opis, a.boja " +
                     "FROM Oglas o " +
                     "JOIN Automobil a ON o.automobil_id = a.auto_id";
             Statement statement = connection.createStatement();
@@ -83,11 +83,29 @@ public class Klientfx extends Application {
                 double cena = resultSet.getDouble("cena");
                 String putanjaDoSlike = resultSet.getString("slika");
 
-                Oglas oglas = new Oglas(naslov, opis, cena, putanjaDoSlike);
+                Oglas oglas = new Oglas(oglasId, naslov, opis, cena, putanjaDoSlike);
                 oglasiVBox.getChildren().add(oglas.getOglasNode());
             }
 
             resultSet.close();
+            statement.close();
+            connection.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void dodajUKaparisaneOglase(int oglasId, String korisnikIme) {
+        try {
+            Connection connection = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/cs202-db",
+                    "root",
+                    "");
+
+            String query = "INSERT INTO kaparisanioglas (oglas_id, korisnik) VALUES (" + oglasId + ", '" + korisnikIme + "')";
+            Statement statement = connection.createStatement();
+            statement.executeUpdate(query);
+
             statement.close();
             connection.close();
         } catch (Exception e) {
@@ -128,12 +146,14 @@ public class Klientfx extends Application {
     }
 
     private class Oglas {
+        private int oglasId;
         private String naslov;
         private String opis;
         private double cena;
         private String putanjaDoSlike;
 
-        public Oglas(String naslov, String opis, double cena, String putanjaDoSlike) {
+        public Oglas(int oglasId, String naslov, String opis, double cena, String putanjaDoSlike) {
+            this.oglasId = oglasId;
             this.naslov = naslov;
             this.opis = opis;
             this.cena = cena;
@@ -180,6 +200,7 @@ public class Klientfx extends Application {
                 double popust = cena * 0.1;
                 labelPopust.setText("Kaparaisano: $" + popust);
                 prikaziKaparisanjePopup(naslov, opis, cena, bojaChoiceBox.getValue(), putanjaDoSlike);
+                dodajUKaparisaneOglase(oglasId, korisnikIme);
             });
 
             oglasNode.getChildren().addAll(imageView, labelNaslov, labelOpis, labelCena, bojaChoiceBox, dugmeIzracunajPopust, labelPopust);
