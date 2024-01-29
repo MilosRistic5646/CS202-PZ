@@ -11,7 +11,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -212,8 +211,8 @@ public class Klientfx extends Application {
             oglasVBox.setBorder(new Border(new BorderStroke(Color.GREY, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
 
             ImageView slikaView = new ImageView(new Image(putanjaDoSlike));
-            slikaView.setFitWidth(200);
-            slikaView.setFitHeight(120);
+            slikaView.setFitWidth(300);
+            slikaView.setFitHeight(180);
 
             Label labelNaslov = new Label(naslov);
             Label labelOpis = new Label(opis);

@@ -1,16 +1,23 @@
 package LoginRegister;
+
+import javafx.geometry.Insets;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.GridPane;
+import javafx.stage.Stage;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import FX.Adminfx;
 import FX.AutoOglasnaTabla;
 import FX.Klientfx;
-import javafx.geometry.Insets;
-import javafx.scene.control.*;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.layout.GridPane;
-import javafx.stage.Stage;
+import FX.Vlasnikfx;
 
 public class Login extends GridPane {
 
@@ -37,21 +44,11 @@ public class Login extends GridPane {
             String password = passwordField.getText();
 
             if (validateInputForLogin(ime, prezime, password)) {
-                if (authenticateUser(ime, prezime, password)) {
-                    Alert alert = new Alert(AlertType.INFORMATION);
-                    alert.setTitle("Login Successful");
-                    alert.setHeaderText(null);
-                    alert.setContentText("You have successfully logged in!");
-                    alert.showAndWait();
-
-                    primaryStage.close();
-                    new Klientfx().start(primaryStage);
+                if (LoginService.authenticateUser(ime, prezime, password)) {
+                    String uloga = LoginService.getUloga(ime, prezime);
+                    redirectToDashboard(uloga, primaryStage);
                 } else {
-                    Alert alert = new Alert(AlertType.ERROR);
-                    alert.setTitle("Login Error");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Invalid username or password. Please try again.");
-                    alert.showAndWait();
+                    showAlert("Login Error", "Invalid username or password. Please try again.");
                 }
             }
         });
@@ -71,37 +68,36 @@ public class Login extends GridPane {
             showAlert("Invalid Input", "Please enter all required fields.");
             return false;
         }
-
         return true;
     }
 
     private void showAlert(String title, String message) {
-        Alert alert = new Alert(AlertType.WARNING);
+        Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
     }
 
-    private boolean authenticateUser(String ime, String prezime, String password) {
-        String url = "jdbc:mysql://localhost:3306/cs202-db";
-        String username = "root";
-        String dbPassword = "";
 
-        try (Connection connection = DriverManager.getConnection(url, username, dbPassword)) {
-            String sql = "SELECT * FROM osoba WHERE ime = ? AND prezime = ? AND password = ?";
-            try (PreparedStatement statement = connection.prepareStatement(sql)) {
-                statement.setString(1, ime);
-                statement.setString(2, prezime);
-                statement.setString(3, password);
 
-                try (ResultSet resultSet = statement.executeQuery()) {
-                    return resultSet.next();
-                }
+    private void redirectToDashboard(String uloga, Stage primaryStage) {
+        if (uloga != null) {
+            switch (uloga.toUpperCase()) {
+                case "KORISNIK":
+                    new Klientfx().start(primaryStage);
+                    break;
+                case "ADMIN":
+                    new Adminfx().start(primaryStage);
+                    break;
+                case "VLASNIK":
+                    new Vlasnikfx().start(primaryStage);
+                    break;
+                default:
+                    showAlert("Login Error", "Invalid user role.");
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
+        } else {
+            showAlert("Login Error", "User role not found.");
         }
     }
 }
