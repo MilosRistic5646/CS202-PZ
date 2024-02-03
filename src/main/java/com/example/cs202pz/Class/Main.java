@@ -12,7 +12,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -34,49 +33,44 @@ public class Main extends Application {
         Text titleText = new Text();
         Button button = new Button("Pogledaj Auto Oglasnu Tablu");
 
-        // Dodajte stil za poboljšanje vidljivosti
         button.setStyle("-fx-text-fill: white; -fx-background-color: #4CAF50;");
         titleText.setStyle("-fx-fill: white;");
 
         titleText.setFont(new Font(24));
 
-        VBox vbox = new VBox(imageView, titleText, button);
+        VBox vbox = new VBox(titleText, imageView, button);
         vbox.setAlignment(Pos.CENTER);
         vbox.setSpacing(20);
 
-        // Dodajte stil za crnu boju pozadine VBox-a
         vbox.setStyle("-fx-background-color: black;");
 
-        // Kreiranje scene
         Scene scene = new Scene(vbox, 800, 600, Color.BLACK);
 
-        // Postavljanje akcije dugmeta
         button.setOnAction(event -> {
-            // Otvori AutoOglasnaTabla.java
-            AutoOglasnaTabla.main(new String[]{});
+            AutoOglasnaTabla autoOglasnaTabla = new AutoOglasnaTabla();
+            try {
+                autoOglasnaTabla.start(new Stage());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            primaryStage.close();
         });
-
-        // Povezivanje s bazom podataka
+        button.setMinWidth(150);
+        button.setMinHeight(40);
         try (Connection connection = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD)) {
-            // Izvršavanje SQL upita
             String sql = "SELECT naslovna, ime FROM autosalon WHERE id = ?";
             try (PreparedStatement statement = connection.prepareStatement(sql)) {
-                statement.setInt(1, 1);  // Postavi odgovarajući ID oglasa
+                statement.setInt(1, 1);
                 try (ResultSet resultSet = statement.executeQuery()) {
                     if (resultSet.next()) {
-                        // Postavljanje slike iz baze
                         String imageUrl = resultSet.getString("naslovna");
                         Image image = new Image(imageUrl);
                         if (image.isError()) {
                             System.out.println("Greška prilikom učitavanja slike");
                         } else {
-                            // Prilagodite širinu i visinu slike
-                            image.getWidth();
-                            image.getHeight();
-
                             imageView.setImage(image);
-
-                            // Postavljanje naslova
+                            imageView.setPreserveRatio(true);
+                            imageView.setFitWidth(400);
                             String title = resultSet.getString("ime");
                             titleText.setText(title);
                         }
@@ -86,9 +80,7 @@ public class Main extends Application {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        // Postavljanje naslova prozora i prikazivanje scene
-        primaryStage.setTitle("Auto Oglas");
+        primaryStage.setTitle("Auto Oglasi");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
